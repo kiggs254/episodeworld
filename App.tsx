@@ -58,7 +58,6 @@ const ServiceIcon = ({ type, className = "w-6 h-6 text-brand-green" }: { type: s
 // --- SEO & Scripts Handler ---
 const SEOHandler = () => {
   const { settings } = useData();
-  const location = useLocation();
   
   useEffect(() => {
     // Helper function to get or create meta tag
@@ -121,7 +120,7 @@ const SEOHandler = () => {
     const author = getOrCreateMeta('author', 'name') as HTMLMetaElement;
     author.setAttribute('content', settings.siteName || 'Episode World');
 
-  }, [settings.seo, settings.siteName, settings.logo, settings.hero, location.pathname]);
+  }, [settings.seo, settings.siteName, settings.logo, settings.hero]);
 
   return null;
 };
