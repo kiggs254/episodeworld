@@ -388,7 +388,7 @@ const Login = () => {
                 <Lock size={32} />
             </div>
             <h2 className="text-3xl font-bold text-brand-dark">CMS Admin Panel</h2>
-            <p className="text-gray-500 text-sm mt-2">Secure access for Skyline Savannah Tours</p>
+            <p className="text-gray-500 text-sm mt-2">Secure access for Episode World</p>
         </div>
         {msg && <div className={`p-4 rounded-lg mb-6 text-sm font-medium flex items-start gap-2 ${msg.type === 'error' ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'}`}>
           {msg.type === 'error' ? <X size={16} className="mt-0.5" /> : <Check size={16} className="mt-0.5" />}<span>{msg.text}</span></div>}

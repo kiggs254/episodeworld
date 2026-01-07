@@ -3,7 +3,10 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Skyline Savannah Tours | Discover. Explore. Experience.</title>
+    <meta name="description" content="Discover extraordinary travel experiences with Episode World. Curated adventures, authentic cultures, and unforgettable memories around the globe." />
+    <meta name="keywords" content="travel, adventure, tours, experiences, destinations, world travel, curated trips" />
+    <meta name="author" content="Episode World" />
+    <title>Episode World | Your Journey, Your Story</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;700&family=Caveat:wght@400;700&display=swap" rel="stylesheet">
     
@@ -28,11 +31,32 @@
             animation: {
               'bounce-slow': 'bounce 4s infinite',
               'loader-progress': 'loaderProgress 2s ease-in-out infinite',
+              'progress': 'progress 2s ease-in-out infinite',
+              'float': 'float 3s ease-in-out infinite',
+              'fade-in-up': 'fade-in-up 0.6s ease-out forwards',
+              'fade-in': 'fade-in 0.4s ease-out forwards',
             },
             keyframes: {
               loaderProgress: {
                 '0%': { transform: 'translateX(-100%)' },
                 '100%': { transform: 'translateX(100%)' },
+              },
+              progress: {
+                '0%': { transform: 'translateX(-100%)' },
+                '50%': { transform: 'translateX(0%)' },
+                '100%': { transform: 'translateX(100%)' },
+              },
+              float: {
+                '0%, 100%': { transform: 'translateY(0) scale(1)', opacity: '0.3' },
+                '50%': { transform: 'translateY(-100px) scale(1.2)', opacity: '0.8' },
+              },
+              'fade-in-up': {
+                'from': { opacity: '0', transform: 'translateY(10px)' },
+                'to': { opacity: '1', transform: 'translateY(0)' },
+              },
+              'fade-in': {
+                'from': { opacity: '0', transform: 'translateY(5px)' },
+                'to': { opacity: '1', transform: 'translateY(0)' },
               }
             }
           }

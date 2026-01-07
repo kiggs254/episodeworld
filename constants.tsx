@@ -243,7 +243,7 @@ export const TESTIMONIALS: Testimonial[] = [
     id: 't1',
     name: 'Sarah Jenkins',
     role: 'Travel Enthusiast',
-    content: 'Skyline Savannah Tours planned our honeymoon in Diani perfectly. Every detail was taken care of!',
+    content: 'Episode World planned our honeymoon perfectly. Every detail was taken care of!',
     rating: 5
   },
   {
@@ -265,7 +265,7 @@ export const TESTIMONIALS: Testimonial[] = [
 export const INITIAL_FAQS: FAQ[] = [
   {
     id: 'faq1',
-    question: "How do I book a trip with Skyline Savannah Tours?",
+    question: "How do I book a trip with Episode World?",
     answer: "Booking is easy! You can browse our packages online and send an enquiry via the 'Book Now' button. Alternatively, reach out to us directly via WhatsApp, email, or phone. Our team will finalize the itinerary with you and guide you through the payment process."
   },
   {
@@ -299,7 +299,7 @@ export const INITIAL_POSTS: Post[] = [
     content: 'The Maasai Mara is more than just a safari destination; it is a place of breathtaking beauty and vibrant culture.\n\n**1. Witness the Great Migration:** The annual movement of millions of wildebeest and zebra is a sight to behold.\n\n**2. Hot Air Balloon Safari:** Get a bird\'s eye view of the savannah at sunrise. It is a magical experience.\n\n**3. Visit a Maasai Village:** Interact with the local community and learn about their fascinating traditions.\n\n**4. Go on a Night Game Drive:** Discover the nocturnal creatures of the Mara.\n\n**5. Bush Dinners:** Enjoy a gourmet meal under the stars, surrounded by the sounds of the African wilderness.',
     excerpt: 'Discover the ultimate experiences in the Maasai Mara, from the Great Migration to magical hot air balloon rides.',
     featured_image: 'https://images.unsplash.com/photo-1516426122078-c23e76319801?auto=format&fit=crop&w=800&q=80',
-    author_name: 'Skyline Staff',
+    author_name: 'Episode World Team',
     tags: ['safari', 'kenya', 'maasai mara', 'travel tips'],
     status: 'published'
   },
@@ -399,7 +399,7 @@ export const INITIAL_SERVICES: Service[] = [
 
 export const CONTACT_INFO = {
   phone: ['+254 788 818 001', '+254 724 633 223'],
-  email: 'hello@skylinesavannah.com',
+  email: 'hello@episodeworld.com',
   address: '680 Hotel Building, 5th Floor, Room 507, Nairobi, Kenya',
   whatsapp: '254788818001' 
 };

@@ -58,30 +58,70 @@ const ServiceIcon = ({ type, className = "w-6 h-6 text-brand-green" }: { type: s
 // --- SEO & Scripts Handler ---
 const SEOHandler = () => {
   const { settings } = useData();
+  const location = useLocation();
   
   useEffect(() => {
-    if (settings.seo) {
-      document.title = settings.seo.title || 'Skyline Savannah Tours';
-      
-      // Update Meta Description
-      let metaDesc = document.querySelector('meta[name="description"]');
-      if (!metaDesc) {
-        metaDesc = document.createElement('meta');
-        metaDesc.setAttribute('name', 'description');
-        document.head.appendChild(metaDesc);
+    // Helper function to get or create meta tag
+    const getOrCreateMeta = (name: string, attribute: string = 'name'): HTMLElement => {
+      let meta = document.querySelector(`meta[${attribute}="${name}"]`) as HTMLMetaElement;
+      if (!meta) {
+        meta = document.createElement('meta');
+        meta.setAttribute(attribute, name);
+        document.head.appendChild(meta);
       }
-      metaDesc.setAttribute('content', settings.seo.description || '');
+      return meta;
+    };
 
-      // Update Meta Keywords
-      let metaKeys = document.querySelector('meta[name="keywords"]');
-      if (!metaKeys) {
-        metaKeys = document.createElement('meta');
-        metaKeys.setAttribute('name', 'keywords');
-        document.head.appendChild(metaKeys);
-      }
-      metaKeys.setAttribute('content', settings.seo.keywords || '');
-    }
-  }, [settings.seo]);
+    // Update document title
+    const title = settings.seo?.title || settings.siteName || 'Episode World';
+    document.title = title;
+
+    // Update Meta Description
+    const description = settings.seo?.description || 
+      'Discover extraordinary travel experiences with Episode World. Curated adventures, authentic cultures, and unforgettable memories around the globe.';
+    const metaDesc = getOrCreateMeta('description') as HTMLMetaElement;
+    metaDesc.setAttribute('content', description);
+
+    // Update Meta Keywords
+    const keywords = settings.seo?.keywords || 
+      'travel, adventure, tours, experiences, destinations, world travel, curated trips';
+    const metaKeys = getOrCreateMeta('keywords') as HTMLMetaElement;
+    metaKeys.setAttribute('content', keywords);
+
+    // Update or create Open Graph tags
+    const ogTitle = getOrCreateMeta('og:title', 'property') as HTMLMetaElement;
+    ogTitle.setAttribute('content', title);
+
+    const ogDescription = getOrCreateMeta('og:description', 'property') as HTMLMetaElement;
+    ogDescription.setAttribute('content', description);
+
+    const ogImage = getOrCreateMeta('og:image', 'property') as HTMLMetaElement;
+    ogImage.setAttribute('content', settings.logo || settings.hero?.fallbackImage || '');
+
+    const ogUrl = getOrCreateMeta('og:url', 'property') as HTMLMetaElement;
+    ogUrl.setAttribute('content', window.location.href);
+
+    const ogType = getOrCreateMeta('og:type', 'property') as HTMLMetaElement;
+    ogType.setAttribute('content', 'website');
+
+    // Update or create Twitter Card tags
+    const twitterCard = getOrCreateMeta('twitter:card', 'name') as HTMLMetaElement;
+    twitterCard.setAttribute('content', 'summary_large_image');
+
+    const twitterTitle = getOrCreateMeta('twitter:title', 'name') as HTMLMetaElement;
+    twitterTitle.setAttribute('content', title);
+
+    const twitterDescription = getOrCreateMeta('twitter:description', 'name') as HTMLMetaElement;
+    twitterDescription.setAttribute('content', description);
+
+    const twitterImage = getOrCreateMeta('twitter:image', 'name') as HTMLMetaElement;
+    twitterImage.setAttribute('content', settings.logo || settings.hero?.fallbackImage || '');
+
+    // Update author and viewport if needed
+    const author = getOrCreateMeta('author', 'name') as HTMLMetaElement;
+    author.setAttribute('content', settings.siteName || 'Episode World');
+
+  }, [settings.seo, settings.siteName, settings.logo, settings.hero, location.pathname]);
 
   return null;
 };
@@ -381,10 +421,10 @@ const Navbar = () => {
                 </div>
                 <div className="flex flex-col leading-none">
                   <span className={`font-handwriting font-bold transition-all ${scrolled ? 'text-2xl text-brand-green' : 'text-3xl text-white'}`}>
-                    {settings.siteName?.split(' ')[0] || 'Skyline'}
+                    {settings.siteName?.split(' ')[0] || 'Episode'}
                   </span>
                   <span className={`font-serif font-bold transition-all ${scrolled ? 'text-lg text-brand-orange' : 'text-xl text-brand-orange'}`}>
-                    {settings.siteName?.split(' ').slice(1).join(' ') || 'Savannah Tours'}
+                    {settings.siteName?.split(' ').slice(1).join(' ') || 'World'}
                   </span>
                 </div>
               </div>
@@ -554,7 +594,7 @@ const Hero = () => {
       <div className="relative z-10 w-full px-4 text-center py-10 md:py-0">
         <div className="max-w-5xl mx-auto">
             <p className="text-brand-orange font-bold uppercase tracking-[0.2em] mb-2 md:mb-4 text-xs md:text-base">
-              Welcome to {settings.siteName || 'Skyline'}
+              Welcome to {settings.siteName || 'Episode'}
             </p>
             <h1 className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-serif font-bold text-white mb-4 md:mb-6 leading-tight drop-shadow-2xl">
               {hero.title || "The Spirit of Africa"}
@@ -912,13 +952,51 @@ const AITripPlanner = () => {
              )}
 
              {loading && (
-                <div className="text-center space-y-6">
-                   <div className="relative w-24 h-24 mx-auto">
-                      <div className="absolute inset-0 border-4 border-white/10 rounded-full"></div>
-                      <div className="absolute inset-0 border-4 border-brand-orange rounded-full border-t-transparent animate-spin"></div>
-                      <Sparkles className="absolute inset-0 m-auto text-white animate-pulse" />
+                <div className="text-center space-y-8 relative">
+                   {/* Animated background glow */}
+                   <div className="absolute inset-0 flex items-center justify-center">
+                     <div className="w-64 h-64 bg-brand-orange/10 rounded-full blur-3xl animate-pulse"></div>
                    </div>
-                   <p className="text-xl font-medium text-brand-orange animate-pulse">Consulting the digital oracle...</p>
+                   
+                   {/* Main spinner */}
+                   <div className="relative z-10">
+                     <div className="relative w-32 h-32 mx-auto mb-6">
+                        {/* Outer rotating rings */}
+                        <div className="absolute inset-0 border-4 border-white/10 rounded-full"></div>
+                        <div className="absolute inset-0 border-4 border-transparent border-t-brand-orange rounded-full animate-spin" style={{ animationDuration: '1.5s' }}></div>
+                        <div className="absolute inset-2 border-4 border-transparent border-r-brand-orange/50 rounded-full animate-spin" style={{ animationDuration: '2s', animationDirection: 'reverse' }}></div>
+                        
+                        {/* Center icon */}
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <div className="w-16 h-16 bg-gradient-to-br from-brand-orange to-red-500 rounded-full flex items-center justify-center shadow-lg shadow-brand-orange/50">
+                            <Sparkles className="w-8 h-8 text-white animate-pulse" />
+                          </div>
+                        </div>
+                     </div>
+                     
+                     {/* Loading text with typing effect */}
+                     <div className="space-y-3">
+                       <p className="text-2xl font-serif font-bold text-white">
+                         <span className="inline-block animate-fade-in">Consulting</span>
+                         <span className="inline-block animate-fade-in" style={{ animationDelay: '0.2s' }}> the</span>
+                         <span className="inline-block animate-fade-in" style={{ animationDelay: '0.4s' }}> digital</span>
+                         <span className="inline-block animate-fade-in" style={{ animationDelay: '0.6s' }}> oracle</span>
+                         <span className="inline-block animate-pulse" style={{ animationDelay: '0.8s' }}>...</span>
+                       </p>
+                       <p className="text-sm text-gray-400 font-light">Crafting your perfect itinerary</p>
+                     </div>
+                     
+                     {/* Progress dots */}
+                     <div className="flex justify-center gap-2 mt-6">
+                       {[0, 1, 2].map((i) => (
+                         <div
+                           key={i}
+                           className="w-2 h-2 bg-brand-orange rounded-full animate-bounce"
+                           style={{ animationDelay: `${i * 0.2}s`, animationDuration: '1s' }}
+                         ></div>
+                       ))}
+                     </div>
+                   </div>
                 </div>
              )}
 
@@ -1346,13 +1424,68 @@ const HomePage = () => {
 
   if (!imagesLoaded) {
     return (
-      <div className="fixed inset-0 z-[200] flex flex-col items-center justify-center bg-brand-green">
-        <div className="flex space-x-2 mb-4">
-           <div className="w-3 h-3 bg-white rounded-full animate-bounce" style={{ animationDelay: '0s' }}></div>
-           <div className="w-3 h-3 bg-white rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-           <div className="w-3 h-3 bg-white rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></div>
+      <div className="fixed inset-0 z-[200] flex flex-col items-center justify-center bg-gradient-to-br from-brand-green via-[#c01e2a] to-[#a01a26] overflow-hidden">
+        {/* Animated background elements */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-white/10 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-white/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
+          <div className="absolute top-1/2 left-1/2 w-64 h-64 bg-white/5 rounded-full blur-2xl animate-pulse" style={{ animationDelay: '2s' }}></div>
         </div>
-        <p className="text-white font-serif text-xl tracking-widest uppercase animate-pulse">Loading Adventure</p>
+
+        {/* Main content */}
+        <div className="relative z-10 flex flex-col items-center">
+          {/* Animated logo/icon container */}
+          <div className="relative mb-8">
+            {/* Outer rotating ring */}
+            <div className="absolute inset-0 w-32 h-32 border-4 border-white/20 rounded-full"></div>
+            <div className="absolute inset-0 w-32 h-32 border-4 border-transparent border-t-white rounded-full animate-spin" style={{ animationDuration: '2s' }}></div>
+            
+            {/* Middle pulsing ring */}
+            <div className="absolute inset-2 w-28 h-28 border-2 border-white/30 rounded-full animate-ping"></div>
+            
+            {/* Inner icon */}
+            <div className="relative w-32 h-32 flex items-center justify-center">
+              <div className="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center">
+                <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-lg">
+                  <Globe className="w-8 h-8 text-brand-green" />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Loading text with animation */}
+          <div className="text-center space-y-3">
+            <h2 className="text-3xl md:text-4xl font-serif font-bold text-white tracking-wide">
+              <span className="inline-block animate-fade-in-up">Loading</span>
+              <span className="inline-block animate-fade-in-up" style={{ animationDelay: '0.2s' }}> Your</span>
+              <span className="inline-block animate-fade-in-up" style={{ animationDelay: '0.4s' }}> Adventure</span>
+            </h2>
+            <p className="text-white/80 text-sm md:text-base font-light tracking-wider uppercase">
+              Preparing something amazing...
+            </p>
+          </div>
+
+          {/* Progress bar */}
+          <div className="mt-8 w-64 h-1 bg-white/20 rounded-full overflow-hidden">
+            <div className="h-full w-full bg-white rounded-full animate-progress"></div>
+          </div>
+
+          {/* Floating particles */}
+          <div className="absolute inset-0 pointer-events-none">
+            {[...Array(6)].map((_, i) => (
+              <div
+                key={i}
+                className="absolute w-2 h-2 bg-white/30 rounded-full animate-float"
+                style={{
+                  left: `${20 + i * 15}%`,
+                  bottom: '10%',
+                  animationDelay: `${i * 0.3}s`,
+                  animationDuration: `${3 + i * 0.5}s`
+                }}
+              ></div>
+            ))}
+          </div>
+        </div>
       </div>
     );
   }

@@ -1,5 +1,5 @@
 <?php
-// skylineapi.php - Backend for Skyline Savannah Tours
+// api.php - Backend for Episode World
 // STATUS: ROBUST LOGIN + TABLE AUTO-CREATION + EMAIL NOTIFICATIONS
 
 // 1. CORS & HEADERS
@@ -30,16 +30,28 @@ function loadEnv($path) {
     }
     $lines = file($path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
     foreach ($lines as $line) {
-        if (strpos(trim($line), '#') === 0) continue;
+        $line = trim($line);
+        if (empty($line) || strpos($line, '#') === 0) continue;
+        
+        if (strpos($line, '=') === false) continue;
+        
         list($name, $value) = explode('=', $line, 2);
         $name = trim($name);
         $value = trim($value);
+        
+        // Remove quotes if present
+        if ((substr($value, 0, 1) === '"' && substr($value, -1) === '"') ||
+            (substr($value, 0, 1) === "'" && substr($value, -1) === "'")) {
+            $value = substr($value, 1, -1);
+        }
+        
         if (!array_key_exists($name, $_SERVER) && !array_key_exists($name, $_ENV)) {
             putenv(sprintf('%s=%s', $name, $value));
             $_ENV[$name] = $value;
             $_SERVER[$name] = $value;
         }
     }
+    return true;
 }
 
 // Load .env if it exists
@@ -121,7 +133,7 @@ class SMTPMailer {
     private function log($msg) { $this->debug[] = $msg; }
     public function getLogs() { return $this->debug; }
 
-    public function send($to, $subject, $body, $fromName = 'Skyline Tours') {
+    public function send($to, $subject, $body, $fromName = 'Episode World') {
         if (!$this->server) { $this->log("No SMTP server configured"); return false; }
         
         $socket = fsockopen($this->server, $this->port, $errno, $errstr, 10);
@@ -218,8 +230,8 @@ function send_booking_email($booking_data, $conn) {
     
     // Email to Customer (Optional Confirmation)
     if (!empty($booking_data['customerEmail'])) {
-         $subConf = "Booking Received - Skyline Savannah Tours";
-         $bodyConf = "Dear {$booking_data['customerName']},<br><br>Thank you for booking with us. We have received your request for <strong>{$booking_data['itemName']}</strong> and will get back to you shortly.<br><br>Best Regards,<br>Skyline Savannah Tours";
+         $subConf = "Booking Received - Episode World";
+         $bodyConf = "Dear {$booking_data['customerName']},<br><br>Thank you for booking with us. We have received your request for <strong>{$booking_data['itemName']}</strong> and will get back to you shortly.<br><br>Best Regards,<br>Episode World";
          $mailer->send($booking_data['customerEmail'], $subConf, $bodyConf);
     }
 }
@@ -229,7 +241,7 @@ $action = $_GET['action'] ?? '';
 $method = $_SERVER['REQUEST_METHOD'];
 
 if (empty($action)) {
-    echo json_encode(["status" => "online", "message" => "Skyline API Ready"]);
+    echo json_encode(["status" => "online", "message" => "Episode World API Ready"]);
     exit;
 }
 
@@ -405,7 +417,7 @@ try {
         $smtp = $settings['smtp'];
         $mailer = new SMTPMailer($smtp['server'], $smtp['port'], $smtp['user'], $smtp['pass']);
         
-        if ($mailer->send($targetEmail, "Test Email from Skyline", "<h1>It Works!</h1><p>Your SMTP settings are configured correctly.</p>")) {
+        if ($mailer->send($targetEmail, "Test Email from Episode World", "<h1>It Works!</h1><p>Your SMTP settings are configured correctly.</p>")) {
             echo json_encode(["success" => true]);
         } else {
             echo json_encode(["success" => false, "error" => "Failed to send. Logs: " . implode(" | ", $mailer->getLogs())]);
@@ -534,8 +546,9 @@ try {
             exit;
         }
 
-        $geminiApiKey = getenv('GEMINI_API_KEY') ?: '';
-        $openaiApiKey = getenv('OPENAI_API_KEY') ?: '';
+        // Try multiple sources for API keys (getenv, $_ENV, $_SERVER)
+        $geminiApiKey = getenv('GEMINI_API_KEY') ?: ($_ENV['GEMINI_API_KEY'] ?? $_SERVER['GEMINI_API_KEY'] ?? '');
+        $openaiApiKey = getenv('OPENAI_API_KEY') ?: ($_ENV['OPENAI_API_KEY'] ?? $_SERVER['OPENAI_API_KEY'] ?? '');
 
         try {
             if ($provider === 'openai') {
@@ -611,7 +624,11 @@ try {
                 // Default to Gemini
                 if (!$geminiApiKey) {
                     http_response_code(500);
-                    echo json_encode(["error" => "Gemini API key not configured"]);
+                    $envPath = __DIR__ . '/.env';
+                    $envExists = file_exists($envPath) ? 'exists' : 'does not exist';
+                    echo json_encode([
+                        "error" => "Gemini API key not configured. Please add GEMINI_API_KEY=your_key_here to your .env file. (.env file $envExists)"
+                    ]);
                     exit;
                 }
 
@@ -694,8 +711,9 @@ try {
             exit;
         }
 
-        $geminiApiKey = getenv('GEMINI_API_KEY') ?: '';
-        $openaiApiKey = getenv('OPENAI_API_KEY') ?: '';
+        // Try multiple sources for API keys (getenv, $_ENV, $_SERVER)
+        $geminiApiKey = getenv('GEMINI_API_KEY') ?: ($_ENV['GEMINI_API_KEY'] ?? $_SERVER['GEMINI_API_KEY'] ?? '');
+        $openaiApiKey = getenv('OPENAI_API_KEY') ?: ($_ENV['OPENAI_API_KEY'] ?? $_SERVER['OPENAI_API_KEY'] ?? '');
 
         try {
             if ($provider === 'openai') {
@@ -760,7 +778,11 @@ try {
                 // Default to Gemini
                 if (!$geminiApiKey) {
                     http_response_code(500);
-                    echo json_encode(["error" => "Gemini API key not configured"]);
+                    $envPath = __DIR__ . '/.env';
+                    $envExists = file_exists($envPath) ? 'exists' : 'does not exist';
+                    echo json_encode([
+                        "error" => "Gemini API key not configured. Please add GEMINI_API_KEY=your_key_here to your .env file. (.env file $envExists)"
+                    ]);
                     exit;
                 }
 
