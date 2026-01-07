@@ -3,15 +3,21 @@
 // STATUS: ROBUST LOGIN + TABLE AUTO-CREATION + EMAIL NOTIFICATIONS
 
 // 1. CORS & HEADERS
-$allowed_origin = $_SERVER['HTTP_ORIGIN'] ?? "*";
-header("Access-Control-Allow-Origin: $allowed_origin");
+// Allow requests from any origin (for development) or specific origin (for production)
+$origin = $_SERVER['HTTP_ORIGIN'] ?? '*';
+// You can restrict this to specific domains in production:
+// $allowed_origins = ['https://yourdomain.com', 'https://www.yourdomain.com'];
+// $origin = in_array($origin, $allowed_origins) ? $origin : '*';
+
+header("Access-Control-Allow-Origin: $origin");
 header('Access-Control-Allow-Credentials: true');
 header('Access-Control-Max-Age: 86400');
-header("Access-Control-Allow-Methods: GET, POST, OPTIONS");         
-header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With");
+header("Access-Control-Allow-Methods: GET, POST, OPTIONS, PUT, DELETE");         
+header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With, Accept");
 header("Content-Type: application/json; charset=UTF-8");
 
 if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
+    http_response_code(200);
     exit(0);
 }
 
@@ -425,8 +431,23 @@ try {
         $name = uniqid('img_') . '.' . $ext;
         if (!is_dir('uploads')) mkdir('uploads', 0755, true);
         move_uploaded_file($file['tmp_name'], "uploads/$name");
+        
+        // Generate URL with correct path - include subdirectory if script is not in root
         $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http";
-        echo json_encode(["url" => "$protocol://{$_SERVER['HTTP_HOST']}/uploads/$name"]);
+        $host = $_SERVER['HTTP_HOST'];
+        $scriptPath = dirname($_SERVER['SCRIPT_NAME']);
+        
+        // Remove leading slash and ensure path ends with /
+        $basePath = rtrim($scriptPath, '/');
+        if ($basePath === '' || $basePath === '.') {
+            $url = "$protocol://$host/uploads/$name";
+        } else {
+            // Ensure basePath starts with / and doesn't end with /
+            $basePath = '/' . ltrim($basePath, '/');
+            $url = "$protocol://$host$basePath/uploads/$name";
+        }
+        
+        echo json_encode(["url" => $url]);
         exit;
     }
 
@@ -499,6 +520,302 @@ try {
         }
         echo json_encode(["success" => true, "id" => $id]);
         exit;
+    }
+
+    // --- AI PROXY ENDPOINTS ---
+    if ($action === 'generate_trip_plan' && $method === 'POST') {
+        $input = getJsonInput();
+        $provider = $input['provider'] ?? 'gemini'; // 'gemini' or 'openai'
+        $request = $input['request'] ?? [];
+        
+        if (empty($request) || !isset($request['destination'])) {
+            http_response_code(400);
+            echo json_encode(["error" => "Invalid request data"]);
+            exit;
+        }
+
+        $geminiApiKey = getenv('GEMINI_API_KEY') ?: '';
+        $openaiApiKey = getenv('OPENAI_API_KEY') ?: '';
+
+        try {
+            if ($provider === 'openai') {
+                if (!$openaiApiKey) {
+                    http_response_code(500);
+                    echo json_encode(["error" => "OpenAI API key not configured"]);
+                    exit;
+                }
+
+                $prompt = "Plan a trip to {$request['destination']} for {$request['days']} days for {$request['travelers']} travelers. Budget level: {$request['budget']}. Interests: {$request['interests']}. Provide a structured itinerary including a catchy trip title, a brief summary, an estimated total cost in KES (Kenya Shillings), and a day-by-day breakdown of activities.";
+                
+                $schema = [
+                    "type" => "object",
+                    "properties" => [
+                        "tripTitle" => ["type" => "string"],
+                        "summary" => ["type" => "string"],
+                        "estimatedCost" => ["type" => "string"],
+                        "itinerary" => [
+                            "type" => "array",
+                            "items" => [
+                                "type" => "object",
+                                "properties" => [
+                                    "day" => ["type" => "integer"],
+                                    "title" => ["type" => "string"],
+                                    "activities" => ["type" => "array", "items" => ["type" => "string"]]
+                                ],
+                                "required" => ["day", "title", "activities"]
+                            ]
+                        ]
+                    ],
+                    "required" => ["tripTitle", "summary", "estimatedCost", "itinerary"]
+                ];
+
+                $body = [
+                    "model" => "gpt-4-turbo-preview",
+                    "messages" => [
+                        [
+                            "role" => "system",
+                            "content" => "You are a helpful travel assistant. Respond with a valid JSON object that strictly adheres to this schema: " . json_encode($schema)
+                        ],
+                        [
+                            "role" => "user",
+                            "content" => $prompt
+                        ]
+                    ],
+                    "response_format" => ["type" => "json_object"]
+                ];
+
+                $ch = curl_init('https://api.openai.com/v1/chat/completions');
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                curl_setopt($ch, CURLOPT_POST, true);
+                curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                    'Content-Type: application/json',
+                    'Authorization: Bearer ' . $openaiApiKey
+                ]);
+                curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($body));
+                
+                $response = curl_exec($ch);
+                $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+                curl_close($ch);
+
+                if ($httpCode !== 200) {
+                    $errorData = json_decode($response, true);
+                    throw new Exception($errorData['error']['message'] ?? "OpenAI API error");
+                }
+
+                $data = json_decode($response, true);
+                $result = json_decode($data['choices'][0]['message']['content'], true);
+                echo json_encode($result);
+                exit;
+
+            } else {
+                // Default to Gemini
+                if (!$geminiApiKey) {
+                    http_response_code(500);
+                    echo json_encode(["error" => "Gemini API key not configured"]);
+                    exit;
+                }
+
+                $prompt = "Plan a trip to {$request['destination']} for {$request['days']} days for {$request['travelers']} travelers. Budget level: {$request['budget']}. Interests: {$request['interests']}. Provide a structured itinerary including a catchy trip title, a brief summary, estimated total cost in KES (Kenya Shillings), and a day-by-day breakdown of activities.";
+
+                $body = [
+                    "contents" => [
+                        [
+                            "parts" => [
+                                ["text" => $prompt]
+                            ]
+                        ]
+                    ],
+                    "generationConfig" => [
+                        "responseMimeType" => "application/json",
+                        "responseSchema" => [
+                            "type" => "object",
+                            "properties" => [
+                                "tripTitle" => ["type" => "string"],
+                                "summary" => ["type" => "string"],
+                                "estimatedCost" => ["type" => "string"],
+                                "itinerary" => [
+                                    "type" => "array",
+                                    "items" => [
+                                        "type" => "object",
+                                        "properties" => [
+                                            "day" => ["type" => "integer"],
+                                            "title" => ["type" => "string"],
+                                            "activities" => [
+                                                "type" => "array",
+                                                "items" => ["type" => "string"]
+                                            ]
+                                        ]
+                                    ]
+                                ]
+                            ]
+                        ]
+                    ]
+                ];
+
+                $ch = curl_init('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=' . $geminiApiKey);
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                curl_setopt($ch, CURLOPT_POST, true);
+                curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+                curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($body));
+                
+                $response = curl_exec($ch);
+                $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+                curl_close($ch);
+
+                if ($httpCode !== 200) {
+                    $errorData = json_decode($response, true);
+                    throw new Exception($errorData['error']['message'] ?? "Gemini API error");
+                }
+
+                $data = json_decode($response, true);
+                if (isset($data['candidates'][0]['content']['parts'][0]['text'])) {
+                    $result = json_decode($data['candidates'][0]['content']['parts'][0]['text'], true);
+                    echo json_encode($result);
+                } else {
+                    throw new Exception("No response from Gemini API");
+                }
+                exit;
+            }
+        } catch (Exception $e) {
+            http_response_code(500);
+            echo json_encode(["error" => $e->getMessage()]);
+            exit;
+        }
+    }
+
+    if ($action === 'get_destination_insights' && $method === 'POST') {
+        $input = getJsonInput();
+        $provider = $input['provider'] ?? 'gemini';
+        $destinationName = $input['destination'] ?? '';
+
+        if (empty($destinationName)) {
+            http_response_code(400);
+            echo json_encode(["error" => "Destination name is required"]);
+            exit;
+        }
+
+        $geminiApiKey = getenv('GEMINI_API_KEY') ?: '';
+        $openaiApiKey = getenv('OPENAI_API_KEY') ?: '';
+
+        try {
+            if ($provider === 'openai') {
+                if (!$openaiApiKey) {
+                    http_response_code(500);
+                    echo json_encode(["error" => "OpenAI API key not configured"]);
+                    exit;
+                }
+
+                $prompt = "Provide a detailed travel guide for {$destinationName}. The response must be a single string containing Markdown formatting. Structure your response with exactly these 3 Markdown headers (starting with ##): 1. Best Time to Visit 2. Top Local Attractions (list 3-5 specific places) 3. Cultural Tips (etiquette, dress code, local customs) Keep the content engaging and helpful for a tourist.";
+
+                $schema = [
+                    "type" => "object",
+                    "properties" => [
+                        "content" => [
+                            "type" => "string",
+                            "description" => "The full travel guide content in Markdown format."
+                        ]
+                    ],
+                    "required" => ["content"]
+                ];
+
+                $body = [
+                    "model" => "gpt-4-turbo-preview",
+                    "messages" => [
+                        [
+                            "role" => "system",
+                            "content" => "You are a helpful travel assistant. Respond with a valid JSON object that strictly adheres to this schema: " . json_encode($schema)
+                        ],
+                        [
+                            "role" => "user",
+                            "content" => $prompt
+                        ]
+                    ],
+                    "response_format" => ["type" => "json_object"]
+                ];
+
+                $ch = curl_init('https://api.openai.com/v1/chat/completions');
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                curl_setopt($ch, CURLOPT_POST, true);
+                curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                    'Content-Type: application/json',
+                    'Authorization: Bearer ' . $openaiApiKey
+                ]);
+                curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($body));
+                
+                $response = curl_exec($ch);
+                $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+                curl_close($ch);
+
+                if ($httpCode !== 200) {
+                    $errorData = json_decode($response, true);
+                    throw new Exception($errorData['error']['message'] ?? "OpenAI API error");
+                }
+
+                $data = json_decode($response, true);
+                $result = json_decode($data['choices'][0]['message']['content'], true);
+                echo json_encode(["content" => $result['content'], "sources" => []]);
+                exit;
+
+            } else {
+                // Default to Gemini
+                if (!$geminiApiKey) {
+                    http_response_code(500);
+                    echo json_encode(["error" => "Gemini API key not configured"]);
+                    exit;
+                }
+
+                $prompt = "Provide a detailed travel guide for {$destinationName}. Structure your response with exactly these 3 Markdown headers (##): 1. Best Time to Visit 2. Top Local Attractions (list 3-5 specific places) 3. Cultural Tips (etiquette, dress code, local customs) Keep the content engaging and helpful for a tourist.";
+
+                $body = [
+                    "contents" => [
+                        [
+                            "parts" => [
+                                ["text" => $prompt]
+                            ]
+                        ]
+                    ],
+                    "tools" => [["googleSearch" => []]]
+                ];
+
+                $ch = curl_init('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=' . $geminiApiKey);
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                curl_setopt($ch, CURLOPT_POST, true);
+                curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+                curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($body));
+                
+                $response = curl_exec($ch);
+                $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+                curl_close($ch);
+
+                if ($httpCode !== 200) {
+                    $errorData = json_decode($response, true);
+                    throw new Exception($errorData['error']['message'] ?? "Gemini API error");
+                }
+
+                $data = json_decode($response, true);
+                $text = $data['candidates'][0]['content']['parts'][0]['text'] ?? "Information currently unavailable.";
+                
+                // Extract sources from grounding metadata if available
+                $sources = [];
+                if (isset($data['candidates'][0]['groundingMetadata']['groundingChunks'])) {
+                    foreach ($data['candidates'][0]['groundingMetadata']['groundingChunks'] as $chunk) {
+                        if (isset($chunk['web'])) {
+                            $sources[] = [
+                                "title" => $chunk['web']['title'] ?? '',
+                                "url" => $chunk['web']['uri'] ?? ''
+                            ];
+                        }
+                    }
+                }
+
+                echo json_encode(["content" => $text, "sources" => $sources]);
+                exit;
+            }
+        } catch (Exception $e) {
+            http_response_code(500);
+            echo json_encode(["error" => $e->getMessage()]);
+            exit;
+        }
     }
 
 } catch (Exception $e) {

@@ -1,27 +1,65 @@
 import { AIItineraryResponse, TripPlanRequest, DestinationInsight } from "../types";
-import * as geminiService from './geminiService';
-import * as openAiService from './openAiService';
+import { api } from '../lib/api';
 
 type AIProvider = 'gemini' | 'openai';
 
 export const generateTripPlan = async (
   request: TripPlanRequest,
-  provider: AIProvider
+  provider: AIProvider = 'gemini'
 ): Promise<AIItineraryResponse> => {
-  if (provider === 'openai') {
-    return openAiService.generateTripPlan(request);
+  try {
+    const response = await api.post<AIItineraryResponse>('generate_trip_plan', {
+      provider,
+      request
+    });
+
+    if (!response) {
+      throw new Error('No response from server');
+    }
+
+    // Check if response has error
+    if ('error' in response) {
+      throw new Error(response.error);
+    }
+
+    return response as AIItineraryResponse;
+  } catch (error) {
+    console.error("Error generating trip plan:", error);
+    const errorMessage = (error instanceof Error) ? error.message : "An unknown error occurred.";
+    return {
+      tripTitle: "AI Planner Offline",
+      summary: errorMessage,
+      estimatedCost: "N/A",
+      itinerary: [{ day: 1, title: "Configuration Error", activities: ["Could not connect to the AI service."] }]
+    };
   }
-  // Default to Gemini
-  return geminiService.generateTripPlan(request);
 };
 
 export const getDestinationInsights = async (
   destinationName: string,
-  provider: AIProvider
+  provider: AIProvider = 'gemini'
 ): Promise<DestinationInsight> => {
-  if (provider === 'openai') {
-    return openAiService.getDestinationInsights(destinationName);
+  try {
+    const response = await api.post<DestinationInsight>('get_destination_insights', {
+      provider,
+      destination: destinationName
+    });
+
+    if (!response) {
+      throw new Error('No response from server');
+    }
+
+    // Check if response has error
+    if ('error' in response) {
+      throw new Error(response.error);
+    }
+
+    return response as DestinationInsight;
+  } catch (error) {
+    console.error("Error fetching destination insights:", error);
+    return {
+      content: "## Error\nWe could not fetch live details at this moment. Please contact us directly for information.",
+      sources: []
+    };
   }
-  // Default to Gemini
-  return geminiService.getDestinationInsights(destinationName);
 };
