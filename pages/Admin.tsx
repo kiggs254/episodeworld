@@ -264,7 +264,7 @@ const DynamicListEditor = ({ label, items, onChange }: { label: string, items: s
           </div>
         ))}
       </div>
-      <button type="button" onClick={handleAddItem} className="mt-3 text-sm font-semibold text-brand-green flex items-center gap-1 hover:text-green-800"><PlusCircle size={16} /> Add Item</button>
+      <button type="button" onClick={handleAddItem} className="mt-3 text-sm font-semibold text-brand-green flex items-center gap-1 hover:text-[#b01e2a]"><PlusCircle size={16} /> Add Item</button>
     </div>
   );
 };
@@ -298,7 +298,7 @@ const ItineraryEditor = ({ items, onChange }: { items: { day: number, title: str
           </div>
         ))}
       </div>
-      <button type="button" onClick={handleAddItem} className="mt-3 text-sm font-semibold text-brand-green flex items-center gap-1 hover:text-green-800"><PlusCircle size={16} /> Add Day</button>
+      <button type="button" onClick={handleAddItem} className="mt-3 text-sm font-semibold text-brand-green flex items-center gap-1 hover:text-[#b01e2a]"><PlusCircle size={16} /> Add Day</button>
     </div>
   );
 };
@@ -351,7 +351,7 @@ const ImageListEditor = ({ items, onChange }: { items: string[], onChange: (newI
           </div>
         ))}
       </div>
-      <button type="button" onClick={handleAddItem} className="mt-3 text-sm font-semibold text-brand-green flex items-center gap-1 hover:text-green-800"><PlusCircle size={16} /> Add Image</button>
+      <button type="button" onClick={handleAddItem} className="mt-3 text-sm font-semibold text-brand-green flex items-center gap-1 hover:text-[#b01e2a]"><PlusCircle size={16} /> Add Image</button>
     </div>
   );
 };
@@ -395,7 +395,7 @@ const Login = () => {
         <form onSubmit={handleAuth} className="space-y-5">
           <InputField label="Username" type="text" value={username} onChange={setUsername} required placeholder="admin" />
           <InputField label="Password" type="password" value={password} onChange={setPassword} required placeholder="••••••••" />
-          <button type="submit" disabled={loading} className="w-full bg-brand-green text-white py-3 rounded-xl font-bold text-lg shadow-lg hover:bg-green-800 transition-all disabled:opacity-70 flex justify-center items-center gap-2">
+          <button type="submit" disabled={loading} className="w-full bg-brand-green text-white py-3 rounded-xl font-bold text-lg shadow-lg hover:bg-[#b01e2a] transition-all disabled:opacity-70 flex justify-center items-center gap-2">
             {loading ? <Loader2 className="animate-spin" size={20} /> : 'Sign In'}
           </button>
         </form>
@@ -422,7 +422,7 @@ const PageHeader = ({ title, onAdd, onSearch, searchTerm }: { title: string, onA
                 </div>
             )}
             {onAdd && (
-                <button onClick={onAdd} className="bg-brand-green text-white px-4 py-2 rounded-full flex items-center gap-2 hover:bg-green-800 transition-colors shadow-md shrink-0">
+                <button onClick={onAdd} className="bg-brand-green text-white px-4 py-2 rounded-full flex items-center gap-2 hover:bg-[#b01e2a] transition-colors shadow-md shrink-0">
                     <Plus size={18} />
                     <span className="hidden sm:inline">Add New</span>
                 </button>
@@ -751,7 +751,7 @@ const GenericForm = ({ item, onSave, onCancel, fields }: { item: any, onSave: (i
             {fields.map(f => <InputField key={f.name} label={f.label} type={f.type} value={formData[f.name]} onChange={(val: any) => handleChange(f.name, val)} />)}
             <div className="flex justify-end gap-2 mt-4">
                 <button type="button" onClick={onCancel} className="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300">Cancel</button>
-                <button type="submit" className="px-4 py-2 rounded-lg bg-brand-green text-white hover:bg-green-800">Save</button>
+                <button type="submit" className="px-4 py-2 rounded-lg bg-brand-green text-white hover:bg-[#b01e2a]">Save</button>
             </div>
         </form>
     );
@@ -825,7 +825,7 @@ const PackageForm: React.FC<{ item: PackageType | null, onSave: (item: any) => v
             <ItineraryEditor items={formData.detailedItinerary || []} onChange={v => handleChange('detailedItinerary', v)} />
             <div className="flex justify-end gap-2 mt-4">
                 <button type="button" onClick={onCancel} className="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300">Cancel</button>
-                <button type="submit" className="px-4 py-2 rounded-lg bg-brand-green text-white hover:bg-green-800">Save</button>
+                <button type="submit" className="px-4 py-2 rounded-lg bg-brand-green text-white hover:bg-[#b01e2a]">Save</button>
             </div>
         </form>
     );
@@ -894,7 +894,7 @@ const DestinationForm: React.FC<{ item: Destination | null, onSave: (item: any) 
             </div>
             <div className="flex justify-end gap-2 mt-4">
                 <button type="button" onClick={onCancel} className="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300">Cancel</button>
-                <button type="submit" className="px-4 py-2 rounded-lg bg-brand-green text-white hover:bg-green-800">Save</button>
+                <button type="submit" className="px-4 py-2 rounded-lg bg-brand-green text-white hover:bg-[#b01e2a]">Save</button>
             </div>
         </form>
     );
@@ -922,7 +922,7 @@ const PostForm: React.FC<{ item: Post | null, onSave: (item: any) => void, onCan
             </div>
             <div className="flex justify-end gap-2 mt-4">
                 <button type="button" onClick={onCancel} className="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300">Cancel</button>
-                <button type="submit" className="px-4 py-2 rounded-lg bg-brand-green text-white hover:bg-green-800">Save</button>
+                <button type="submit" className="px-4 py-2 rounded-lg bg-brand-green text-white hover:bg-[#b01e2a]">Save</button>
             </div>
         </form>
     );
@@ -971,7 +971,7 @@ const SettingsForm = () => {
         <div>
             <div className="mb-6 flex flex-col sm:flex-row justify-between sm:items-center gap-4">
                 <h2 className="text-3xl font-bold text-gray-800">Site Settings</h2>
-                <button onClick={handleSave} disabled={isSaving} className="bg-brand-green text-white px-4 py-2 rounded-full flex items-center justify-center sm:justify-start gap-2 hover:bg-green-800 disabled:opacity-50 shadow-md">
+                <button onClick={handleSave} disabled={isSaving} className="bg-brand-green text-white px-4 py-2 rounded-full flex items-center justify-center sm:justify-start gap-2 hover:bg-[#b01e2a] disabled:opacity-50 shadow-md">
                     {isSaving ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />} Save Changes
                 </button>
             </div>
@@ -1208,7 +1208,7 @@ const AccountSettingsTab = () => {
                 <InputField label="New Password" type="password" value={password} onChange={setPassword} required />
                 <InputField label="Confirm New Password" type="password" value={confirm} onChange={setConfirm} required />
                 {message && <div className={`p-3 rounded-lg text-sm mb-4 ${message.type === 'error' ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>{message.text}</div>}
-                <button type="submit" disabled={loading} className="px-4 py-2 rounded-lg bg-brand-green text-white hover:bg-green-800 flex items-center gap-2 disabled:opacity-50">
+                <button type="submit" disabled={loading} className="px-4 py-2 rounded-lg bg-brand-green text-white hover:bg-[#b01e2a] flex items-center gap-2 disabled:opacity-50">
                     {loading ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />} Update Password
                 </button>
             </form>

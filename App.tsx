@@ -35,7 +35,7 @@ const Button = ({ children, primary = true, onClick, className = "", type = "but
       disabled ? 'opacity-70 cursor-not-allowed' : ''
     } ${
       primary 
-        ? 'bg-brand-green text-white hover:bg-green-800 shadow-lg hover:shadow-green-900/20' 
+        ? 'bg-brand-green text-white hover:bg-[#b01e2a] shadow-lg hover:shadow-[#b01e2a]/20' 
         : 'bg-brand-orange text-white hover:bg-orange-600 shadow-lg hover:shadow-orange-600/20'
     } ${className}`}
   >
@@ -513,7 +513,7 @@ const TripFinderWidget = () => {
          />
       </div>
 
-      <button type="submit" className="w-full md:w-auto bg-brand-green text-white h-12 md:h-14 px-8 rounded-xl md:rounded-2xl font-bold text-lg hover:bg-green-800 transition-all shadow-lg flex items-center justify-center gap-2 group">
+      <button type="submit" className="w-full md:w-auto bg-brand-green text-white h-12 md:h-14 px-8 rounded-xl md:rounded-2xl font-bold text-lg hover:bg-[#b01e2a] transition-all shadow-lg flex items-center justify-center gap-2 group">
          <Search size={20} className="transition-opacity"/> 
          <span className="md:hidden">Search</span>
       </button>
@@ -993,7 +993,7 @@ const TestimonialsSection = () => {
   return (
     <section className="py-24 bg-[#FDFBF7] relative overflow-hidden">
         {/* Background Texture/Pattern */}
-        <div className="absolute inset-0 opacity-5 pointer-events-none" style={{ backgroundImage: 'radial-gradient(#4A5B43 1px, transparent 1px)', backgroundSize: '30px 30px' }}></div>
+        <div className="absolute inset-0 opacity-5 pointer-events-none" style={{ backgroundImage: 'radial-gradient(#d92835 1px, transparent 1px)', backgroundSize: '30px 30px' }}></div>
 
         <div className="container mx-auto px-4 relative z-10">
             <RevealOnScroll>
@@ -2177,7 +2177,7 @@ const PackageDetailsPage = () => {
                                   </div>
                               )}
 
-                              <button type="submit" disabled={submitStatus === 'submitting'} className="w-full bg-brand-green text-white py-4 rounded-xl font-bold text-lg shadow-lg shadow-brand-green/30 hover:bg-green-800 hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2">
+                              <button type="submit" disabled={submitStatus === 'submitting'} className="w-full bg-brand-green text-white py-4 rounded-xl font-bold text-lg shadow-lg shadow-brand-green/30 hover:bg-[#b01e2a] hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2">
                                 {submitStatus === 'submitting' ? <Loader2 className="animate-spin" /> : 'Send Booking Request'}
                               </button>
                               <p className="text-[10px] text-center text-gray-400">No payment required to submit request.</p>
